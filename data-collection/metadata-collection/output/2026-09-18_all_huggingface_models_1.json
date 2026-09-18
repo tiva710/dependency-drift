@@ -1,0 +1,32 @@
+[
+    {
+        "_id": "6aa0140255ff8eff07387347",
+        "id": "Edge0/Edge0-35B-A3B-preview",
+        "likes": 3388,
+        "trendingScore": 2486,
+        "private": false,
+        "downloads": 52519,
+        "tags": [
+            "mlx",
+            "safetensors",
+            "qwen3_5_moe",
+            "moe",
+            "edge-inference",
+            "prerouter",
+            "lora",
+            "ssd-offload",
+            "text-generation",
+            "conversational",
+            "arxiv:2609.18063",
+            "base_model:Qwen/Qwen3.6-35B-A3B",
+            "base_model:adapter:Qwen/Qwen3.6-35B-A3B",
+            "license:apache-2.0",
+            "4-bit",
+            "region:us"
+        ],
+        "pipeline_tag": "text-generation",
+        "library_name": "mlx",
+        "createdAt": "2026-09-08T13:56:18.000Z",
+        "modelId": "Edge0/Edge0-35B-A3B-preview"
+    }
+]

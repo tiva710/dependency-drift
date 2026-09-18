@@ -1,3 +1,8 @@
+## TODO: 
+
+So far (will update as I go): 
+Add `config.yaml` to `/metadata-collection` with `huggingface_key:<here>`
+
 
 ## Table of Contents
 
