@@ -1,2 +1,0 @@
-sort_by,best_model,best_auc,best_params
-downloads,RandomForest,0.8457162958466392,"{'clf__max_depth': 20, 'clf__n_estimators': 200}"
