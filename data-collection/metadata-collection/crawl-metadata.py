@@ -22,14 +22,17 @@ class HuggingFaceAPI:
     # Min commits: TBD 
 
 
-    def get_all_models(self, max_results=1):
+    def get_all_models(self, max_results=1000):
         models = []
         next_page_url = f"/api/models?limit={max_results}"
         total_count = 0
 
         while next_page_url:
             print(f"Processing URL: {next_page_url}")
-            response = requests.get(self.base_url + next_page_url)
+            response = self.get_page(next_page_url)
+            if response is None:
+                print(f"Giving up after repeated failures, keeping the {total_count} models obtained so far")
+                break
             response_dict = json.loads(response.content)
 
             if not response_dict:
@@ -38,28 +41,28 @@ class HuggingFaceAPI:
             models.extend(response_dict)
             total_count += len(response_dict)
             print(f"Have obtained {total_count} Models")
-###############################
-            current_date = datetime.now().strftime("%Y-%m-%d")
-            file_count = len(models)
-        
-            json_file_name = f'output/{current_date}_all_huggingface_models_{file_count}.json'
-            csv_file_name = f'output/{current_date}_all_huggingface_models_{file_count}.csv'
-        
-            # saving JSON
-            with open(json_file_name, 'w', encoding='utf-8') as f:
-                json.dump(models, f, indent=4)
-            print(f"List of models saved in JSON file: {json_file_name}")
-        
-            # saving CSV
-            json_to_csv(json_file_name, csv_file_name)
-            print(f"List of models saved in CSV files: {csv_file_name}")
-#############################
+
             next_link = response.links.get("next", {})
             next_page_url = next_link.get("url", "").replace(self.base_url, "") if next_link else None
 
             time.sleep(self.interval)
 
         return models
+
+    def get_page(self, page_url, max_retries=5):
+        # retry on rate limits (429) / transient errors; HF rate-limit window is 5 min
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = requests.get(self.base_url + page_url, timeout=60)
+                if response.status_code == 200:
+                    return response
+                print(f"Request failed: Status {response.status_code}")
+            except requests.RequestException as e:
+                print(f"Request error: {e}")
+            wait_time = min(60 * attempt, 300)
+            print(f"Retrying in {wait_time}s ({attempt}/{max_retries})...")
+            time.sleep(wait_time)
+        return None
 
 
 def json_to_csv(json_file, csv_file):
@@ -85,20 +88,19 @@ if __name__ == '__main__':
     hf_api = HuggingFaceAPI(api_key)
 
     all_models = hf_api.get_all_models()
-    # current_date = datetime.now().strftime("%Y-%m-%d")
-    # file_count = len(all_models)
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    file_count = len(all_models)
 
-    # # rel path saved:  metadata-collection
-    # output_dir = 'data-collection/metadata-collection'
-    # json_file_name = f'{output_dir}/{current_date}_all_huggingface_models_{file_count}.json'
-    # csv_file_name = f'{output_dir}/{current_date}_all_huggingface_models_{file_count}.csv'
+    # rel path saved: metadata-collection/output
+    json_file_name = f'output/{current_date}_all_huggingface_models_{file_count}.json'
+    csv_file_name = f'output/{current_date}_all_huggingface_models_{file_count}.csv'
 
-    # # saving JSON
-    # with open(json_file_name, 'w', encoding='utf-8') as f:
-    #     json.dump(all_models, f, indent=4)
-    # print(f"List of models saved in JSON file: {json_file_name}")
+    # saving JSON
+    with open(json_file_name, 'w', encoding='utf-8') as f:
+        json.dump(all_models, f, indent=4)
+    print(f"List of models saved in JSON file: {json_file_name}")
 
-    # # saving CSV
-    # json_to_csv(json_file_name, csv_file_name)
-    # print(f"List of models saved in CSV files: {csv_file_name}")
+    # saving CSV
+    json_to_csv(json_file_name, csv_file_name)
+    print(f"List of models saved in CSV files: {csv_file_name}")
 
