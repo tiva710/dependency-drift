@@ -9,8 +9,10 @@ from datetime import datetime, timezone
 # Stage-1 filters, all answerable from the listing metadata (applied in this order):
 #   has task (pipeline_tag), has base model, has dataset,
 #   age since upload >= 6 months, likes >= 2, lastModified > createdAt, not gated
+# Stage 2 (--commits, needs crawl-commits.py output for the stage-1 models): commits >= 2
 MIN_AGE_MONTHS = 6
 MIN_LIKES = 2
+MIN_COMMITS = 2
 
 # base_model:<relation>:<id> tags say how a model derives from its base
 BASE_MODEL_RELATIONS = {"adapter", "finetune", "merge", "quantized"}
@@ -78,6 +80,13 @@ def filter_models(models, cutoff):
     return kept, len(seen), counts
 
 
+def filter_by_commits(models, commits_file):
+    # models whose commits could not be crawled have no commit_count and are dropped
+    with open(commits_file, 'r', encoding='utf-8') as f:
+        commit_counts = {r['id']: r.get('commit_count', 0) for r in json.load(f)}
+    return [m for m in models if commit_counts.get(m['id'], 0) >= MIN_COMMITS]
+
+
 def save_csv(models, csv_file):
     with open(csv_file, 'w', newline='', encoding='utf-8') as cf:
         writer = csv.writer(cf)
@@ -93,6 +102,7 @@ def save_csv(models, csv_file):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Stage-1 filter over the Hugging Face model listing')
     parser.add_argument('--input', help='metadata JSON from crawl-metadata.py (default: newest in metadata-collection/output)')
+    parser.add_argument('--commits', help=f'commits JSON from crawl-commits.py, also applies commits >= {MIN_COMMITS}')
     args = parser.parse_args()
 
     input_file = args.input or max(glob.glob(os.path.join(METADATA_DIR, '*_all_huggingface_models_*.json')),
@@ -109,6 +119,9 @@ if __name__ == '__main__':
         raise SystemExit(f"Input has no {', '.join(missing)} field, re-crawl it with the current crawl-metadata.py")
 
     kept, total, counts = filter_models(all_models, cutoff)
+    if args.commits:
+        kept = filter_by_commits(kept, args.commits)
+        counts[f'commits >= {MIN_COMMITS}'] = len(kept)
     print(f"Snapshot {snapshot_date}, age cutoff: created on or before {cutoff.date()}")
     print(f"{'unique models':>26}: {total:,}")
     for name, count in counts.items():
