@@ -6,3 +6,4 @@ __pycache__/
 # raw outputs 
 data-collection/**/output/
 data-collection/**/*.jsonl
+model-filtering/output/

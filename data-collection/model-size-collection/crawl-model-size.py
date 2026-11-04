@@ -191,7 +191,7 @@ def merge_jsonl_to_final_json(jsonl_path, final_json_path):
 
 def main():
     # --- 基础路径设置 ---
-    filtered_dir = 'data-collection/model-filtering/output'
+    filtered_dir = 'model-filtering/output'
     details_dir = 'data-collection/model-size-collection'
     output_dir = f'{details_dir}/output'  # output/ 已在 .gitignore 里
     input_file = f'{filtered_dir}/2026-11-03_filtered_models_8199.json'

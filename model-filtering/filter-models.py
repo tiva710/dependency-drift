@@ -16,7 +16,7 @@ MIN_LIKES = 2
 BASE_MODEL_RELATIONS = {"adapter", "finetune", "merge", "quantized"}
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-METADATA_DIR = os.path.join(SCRIPT_DIR, '..', 'metadata-collection', 'output')
+METADATA_DIR = os.path.join(SCRIPT_DIR, '..', 'data-collection', 'metadata-collection', 'output')
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
 
 

@@ -11,7 +11,7 @@ import yaml
 from tqdm import tqdm
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-FILTERED_DIR = os.path.join(SCRIPT_DIR, '..', 'model-filtering', 'output')
+FILTERED_DIR = os.path.join(SCRIPT_DIR, '..', '..', 'model-filtering', 'output')
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
 
 # not retried on resume: gated models give 403, models deleted or renamed since the snapshot give 404
