@@ -1,1 +1,8 @@
 config.yaml
+__pycache__/
+*.pyc
+.DS_Store
+
+# raw outputs 
+data-collection/**/output/
+data-collection/**/*.jsonl

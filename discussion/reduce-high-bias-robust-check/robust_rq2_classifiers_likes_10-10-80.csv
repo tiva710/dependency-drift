@@ -1,6 +1,0 @@
-Model,AUC_mean,AUC_std,Best_Params
-RandomForest,0.8408917871631784,0.007631047619273764,"{'clf__max_depth': None, 'clf__n_estimators': 200}"
-KNN,0.7735290680716431,0.009016492460926135,"{'clf__n_neighbors': 11, 'clf__weights': 'distance'}"
-DecisionTree,0.7518338101154889,0.010173449641853363,"{'clf__max_depth': 10, 'clf__min_samples_split': 10}"
-SVM,0.7146624648006923,0.009922103242247795,{'clf__C': 10}
-NaiveBayes,0.6772608228949756,0.011159480174543684,{'clf__var_smoothing': 1e-07}
