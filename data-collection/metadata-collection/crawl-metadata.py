@@ -24,7 +24,10 @@ class HuggingFaceAPI:
 
     def get_all_models(self, max_results=1000):
         models = []
-        next_page_url = f"/api/models?limit={max_results}"
+        # expand[] returns only the listed fields, so list every field we keep (lastModified is not in the default set)
+        fields = ["likes", "trendingScore", "private", "downloads", "tags",
+                  "pipeline_tag", "library_name", "createdAt", "lastModified", "gated"]
+        next_page_url = f"/api/models?limit={max_results}&" + "&".join(f"expand[]={f}" for f in fields)
         total_count = 0
 
         while next_page_url:
@@ -74,7 +77,7 @@ def json_to_csv(json_file, csv_file):
         writer.writerow(['Model ID', 'Other Details'])
 
         for model in data:
-            model_id = model.get('modelId', '')
+            model_id = model.get('id', '')
             other_details = json.dumps(model, ensure_ascii=False)
             writer.writerow([model_id, other_details])
 
