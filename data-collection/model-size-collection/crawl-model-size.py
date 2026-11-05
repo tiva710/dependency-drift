@@ -194,7 +194,7 @@ def main():
     filtered_dir = 'model-filtering/output'
     details_dir = 'data-collection/model-size-collection'
     output_dir = f'{details_dir}/output'  # output/ 已在 .gitignore 里
-    input_file = f'{filtered_dir}/2026-11-03_filtered_models_8199.json'
+    input_file = f'{filtered_dir}/2026-11-03_filtered_models_111878.json'
     jsonl_path = f'{output_dir}/model_size_tree.jsonl'
     final_json_path = f'{output_dir}/model_size_tree_final.json'
 
