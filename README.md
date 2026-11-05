@@ -10,16 +10,16 @@ Everything below comes from one snapshot of the Hugging Face model list taken on
 
 1. **Collected metadata for every public model on the Hub**: 3,209,401 models (~1.9 GB).
 2. **Filtered them down to 111,878 models** using only the must-have filters (see the table below).
-   - Discord link: [metadata](https://discord.com/channels/@me/1539731118272684204/1567914782378434600)
 3. **Collected the full commit history** of those models: 1,283,235 commits, no errors.
-   - Discord link: [commits](https://discord.com/channels/@me/1539731118272684204/1567915082254655570)
 4. **Collected the file list and file sizes** of those models (for model size).
-   - Discord link: [model size](https://discord.com/channels/@me/1539731118272684204/1567915287314047208)
 5. **Collected their requirements files**: only 445 of the models have one.
-   - Discord link: [requirements](https://discord.com/channels/@me/1539731118272684204/1567915562909311026)
+6. **Collected their config files** (`config.json` etc.) and the library versions recorded in them:
+   72,562 models (64.9%) record at least one, mostly `transformers_version`.
 
-The data files are not in git because they are too big (`output/` folders are gitignored).
-They are posted in our Discord, so the links open for team members only. More details are in [Data files](#data-files).
+All of this data is in one zip in our Discord:
+**[dependency-drift_dataset_v2_2026-11-03_111878.zip](https://discord.com/channels/@me/1539731118272684204/1568006333775609958)** (191 MB).
+The link opens for team members only. The data is not in git because it is too big (`output/` folders are gitignored).
+See [Data files](#data-files) for which folder in the zip holds what.
 
 ## How the 111,878 models were picked
 
@@ -40,14 +40,17 @@ When everyone agrees on the final criteria, we filter the tables to get the fina
 
 ## Data files
 
-Posted in our Discord, so the links open for team members only:
+Everything is in one zip: **[dependency-drift_dataset_v2_2026-11-03_111878.zip](https://discord.com/channels/@me/1539731118272684204/1568006333775609958)**
+(Discord, team members only). Start from `metadata/`. Every file joins on the model id (`id` in JSON, `Model ID` in CSV).
+The `README.txt` in the zip lists every column.
 
-| File | What's in it | Format | Link |
-|---|---|---|---|
-| Metadata | Listing fields and tags for the 111,878 models (task, likes, dates, license, ...) | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567914782378434600) |
-| Commits | Full commit history of each model (date, author, title, message) | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915082254655570) |
-| Model size | Every file path and its size in each repo | JSON | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915287314047208) |
-| Requirements | The raw requirements files, plus one row per package and version | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915562909311026) |
+| Folder in the zip | What's in it | Format |
+|---|---|---|
+| `metadata/` | Listing fields and tags for the 111,878 models (task, likes, dates, license, ...) | JSON + CSV |
+| `commits/` | Full commit history of each model (date, author, title, message) | JSON + CSV |
+| `model-size/` | Every file path and its size in each repo | JSON |
+| `requirements/` | The raw requirements files, plus one row per package and version | JSON + CSV |
+| `configs/` | The raw root config files, plus one row per library version found in them | JSON + CSV |
 
 ## Pipeline
 
@@ -58,6 +61,7 @@ Posted in our Discord, so the links open for team members only:
 | 3. Commits | `data-collection/model-commits-collection/crawl-commits.py` | anywhere | `output/<date>_model_commits_<n>.json/.csv` |
 | 4. Model size | `data-collection/model-size-collection/crawl-model-size.py` | repo root | `output/model_size_tree_final.json` |
 | 5. Requirements | `data-collection/requirements-collection/crawl-requirements.py` | anywhere | `output/requirements_<n>.json/.csv` |
+| 6. Configs | `data-collection/model-config-collection/crawl-configs.py` | anywhere | `output/model_configs_<n>.json`, `output/model_config_versions_<n>.csv` |
 
 ## Setup
 
