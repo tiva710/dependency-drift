@@ -6,12 +6,13 @@ import calendar
 import argparse
 from datetime import datetime, timezone
 
-# Stage-1 filters, all answerable from the listing metadata (applied in this order):
-#   has task (pipeline_tag), has base model, has dataset,
-#   age since upload >= 6 months, likes >= 2, lastModified > createdAt, not gated
+# Stage-1 filters, only the must-have ones the team agrees on, all answerable from the listing metadata (applied in this order):
+#   has base model, has dataset, not gated, age since upload >= 6 months
+# The soft filters (task, likes, lastModified > createdAt) are left commented out in FILTERS below. They are still
+# being discussed, so those models stay in the shared data and can be filtered by hand from the CSV columns.
 # Stage 2 (--commits, needs crawl-commits.py output for the stage-1 models): commits >= 2
 MIN_AGE_MONTHS = 6
-MIN_LIKES = 2
+MIN_LIKES = 2  # only used by the commented-out likes filter
 MIN_COMMITS = 2
 
 # base_model:<relation>:<id> tags say how a model derives from its base
@@ -47,14 +48,19 @@ def base_model_relations(model):
 
 
 FILTERS = [
-    ('has task', lambda m, cutoff: bool(m.get('pipeline_tag'))),
     ('has base model', lambda m, cutoff: bool(tag_values(m, 'base_model:'))),
     ('has dataset', lambda m, cutoff: bool(tag_values(m, 'dataset:'))),
-    (f'age >= {MIN_AGE_MONTHS} months', lambda m, cutoff: parse_time(m['createdAt']) <= cutoff),
-    (f'likes >= {MIN_LIKES}', lambda m, cutoff: m.get('likes', 0) >= MIN_LIKES),
-    ('lastModified > createdAt', lambda m, cutoff: parse_time(m['lastModified']) > parse_time(m['createdAt'])),
     # gated is False, "auto" or "manual"; gated repos need a manual accept before their files and commits can be read
     ('not gated', lambda m, cutoff: m['gated'] is False),
+    (f'age >= {MIN_AGE_MONTHS} months', lambda m, cutoff: parse_time(m['createdAt']) <= cutoff),
+
+    # Soft filters, NOT applied for now: the team hasn't agreed on them yet. Uncomment a line to apply it here.
+    # ('has task', lambda m, cutoff: bool(m.get('pipeline_tag'))),
+    # (f'likes >= {MIN_LIKES}', lambda m, cutoff: m.get('likes', 0) >= MIN_LIKES),
+    # ('lastModified > createdAt', lambda m, cutoff: parse_time(m['lastModified']) > parse_time(m['createdAt'])),
+
+    # Other soft criteria need data from the later crawls, so they are columns to filter on instead:
+    #   commits >= 2 (or use --commits below), model size, license, has requirements.txt
 ]
 
 
