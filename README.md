@@ -4,49 +4,60 @@ Measures how often Hugging Face model repositories reference a base model,
 dataset, or library version that has since become invalid or stale, and what
 forms that dependency drift takes.
 
-## Progress so far (Yinan, 2026-11-03)
+## Progress so far (Yinan, 2026-11-05)
 
-Data collection and the first round of filtering are done. Everything below
-comes from one snapshot of the Hugging Face model list taken on **2026-11-03**.
+Everything below comes from one snapshot of the Hugging Face model list taken on **2026-11-03**.
 
 1. **Collected metadata for every public model on the Hub**: 3,209,401 models (~1.9 GB).
-2. **Filtered them down to 8,106 models** (see the table below).
-3. **Collected the full commit history** of the filtered models: 129,053 commits, no errors.
-4. **Collected the file list and file sizes** of the filtered models (for model size), no errors.
+2. **Filtered them down to 111,878 models** using only the must-have filters (see the table below).
+   - Discord link: [metadata](https://discord.com/channels/@me/1539731118272684204/1567914782378434600)
+3. **Collected the full commit history** of those models: 1,283,235 commits, no errors.
+   - Discord link: [commits](https://discord.com/channels/@me/1539731118272684204/1567915082254655570)
+4. **Collected the file list and file sizes** of those models (for model size).
+   - Discord link: [model size](https://discord.com/channels/@me/1539731118272684204/1567915287314047208)
+5. **Collected their requirements files**: only 445 of the models have one.
+   - Discord link: [requirements](https://discord.com/channels/@me/1539731118272684204/1567915562909311026)
 
 The data files are not in git because they are too big (`output/` folders are gitignored).
+They are posted in our Discord, so the links open for team members only. More details are in [Data files](#data-files).
 
-## How the 8,106 models were picked
+## How the 111,878 models were picked
 
-We start from every model and keep only the ones that pass each check, in this order.
-The criteria come from the project notes and the proposal slides.
+Some filters may still change, and we don't want to re-crawl every time one does.
+So we only applied the filters we all agree on and collected everything for those models once.
 
 | # | Filter | What it means | Why | Models left |
 |---|---|---|---|---:|
-| 0 | All models | Every public model in the listing (27 duplicates removed) | Starting point | 3,209,374 |
-| 1 | Has task | The model says what it does (`pipeline_tag`, e.g. text-generation) | We group models by task | 1,116,003 |
-| 2 | Has base model | The model says which model it was built from (`base_model:` tag) | The base model is the main dependency we track | 497,144 |
-| 3 | Has dataset | The model says which dataset it used (`dataset:` tag) | The dataset is another dependency we track | 103,906 |
-| 4 | At least 6 months old | Created on or before 2026-05-03 | Gives its dependencies time to drift | 79,174 |
-| 5 | Likes ≥ 2 | At least 2 likes | Drops throwaway and test repos | 8,454 |
-| 6 | Updated after upload | `lastModified` is later than `createdAt` | We only want repos that changed | 8,432 |
-| 7 | Not gated | No "accept the terms first" wall | Gated repos block reading files and commits | 8,199 |
-| 8 | Commits ≥ 2 | At least 2 commits in its history | We need a history to compare versions | **8,106** |
+| 0 | All models | Every public model in the listing (duplicates removed) | Starting point | 3,209,374 |
+| 1 | Has base model | The model says which model it was built from (`base_model:` tag) | The base model is the main dependency we track | 921,478 |
+| 2 | Has dataset | The model says which dataset it used (`dataset:` tag) | The dataset is another dependency we track | 143,307 |
+| 3 | Not gated | No "accept the terms first" wall | Gated repos block reading files and commits | 140,958 |
+| 4 | At least 6 months old | Created on or before 2026-05-03 | Gives its dependencies time to drift | **111,878** |
 
-Filters 1–7 only need the metadata. Filter 8 needs the commit history, so it runs after the commits are collected.
+Everything else is kept as a column to filter on later: task, likes, `lastModified` > `createdAt`,
+number of commits, model size, license and whether the repo has a `requirements.txt`.
+When everyone agrees on the final criteria, we filter the tables to get the final dataset. No re-crawling needed.
 
-Not applied yet (on hold): has `requirements.txt` (only 63 of the 8,199 models have one),
-permissive license, and minimum model size (no threshold decided).
+## Data files
+
+Posted in our Discord, so the links open for team members only:
+
+| File | What's in it | Format | Link |
+|---|---|---|---|
+| Metadata | Listing fields and tags for the 111,878 models (task, likes, dates, license, ...) | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567914782378434600) |
+| Commits | Full commit history of each model (date, author, title, message) | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915082254655570) |
+| Model size | Every file path and its size in each repo | JSON | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915287314047208) |
+| Requirements | The raw requirements files, plus one row per package and version | JSON + CSV | [Discord](https://discord.com/channels/@me/1539731118272684204/1567915562909311026) |
 
 ## Pipeline
 
 | Step | Script | Run from | Output |
 |---|---|---|---|
 | 1. Metadata | `data-collection/metadata-collection/crawl-metadata.py` | that folder | `output/<date>_all_huggingface_models_<n>.json/.csv` |
-| 2. Filter 1–7 | `model-filtering/filter-models.py` | anywhere | `model-filtering/output/<date>_filtered_models_<n>.json/.csv` |
+| 2. Filter | `model-filtering/filter-models.py` | anywhere | `model-filtering/output/<date>_filtered_models_<n>.json/.csv` |
 | 3. Commits | `data-collection/model-commits-collection/crawl-commits.py` | anywhere | `output/<date>_model_commits_<n>.json/.csv` |
-| 4. Filter 8 | `model-filtering/filter-models.py --commits <commits json>` | anywhere | `model-filtering/output/<date>_filtered_models_<n>.json/.csv` |
-| 5. Model size | `data-collection/model-size-collection/crawl-model-size.py` | repo root | `output/model_size_tree_final.json` |
+| 4. Model size | `data-collection/model-size-collection/crawl-model-size.py` | repo root | `output/model_size_tree_final.json` |
+| 5. Requirements | `data-collection/requirements-collection/crawl-requirements.py` | anywhere | `output/requirements_<n>.json/.csv` |
 
 ## Setup
 
