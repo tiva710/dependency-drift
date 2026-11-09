@@ -22,6 +22,14 @@ TASK_BUCKETS = {
 }
 TASK_TO_BUCKET = {task: bucket for bucket, tasks in TASK_BUCKETS.items() for task in tasks}
 
+# Bins are upper-inclusive: 9 downloads is '0-9', 10 is '10-99'
+DOWNLOAD_BINS = [-1, 9, 99, 999, 9999, float('inf')]
+DOWNLOAD_LABELS = ['0-9dl', '10-99dl', '100-999dl', '1000-9999dl', '10k+dl']
+
+# Age in whole months at SNAPSHOT: 6 months and 20 days is '6-12'
+AGE_BINS = [5, 12, 24, 36, float('inf')]
+AGE_LABELS = ['6-12mo', '13-24mo', '25-36mo', '37+mo']
+
 PERMISSIVE_LICENSES = {
     'apache-2.0', 'mit', 'bsd', 'bsd-2-clause', 'bsd-3-clause', 'bsd-3-clause-clear', 'isc', 'unlicense',
     'cc0-1.0', 'cc-by-2.0', 'cc-by-2.5', 'cc-by-3.0', 'cc-by-4.0', 'cc-by-sa-3.0', 'cc-by-sa-4.0',
@@ -29,15 +37,14 @@ PERMISSIVE_LICENSES = {
     'pddl', 'odbl', 'lgpl-2.1', 'lgpl-3.0', 'gpl-2.0', 'gpl-3.0', 'agpl-3.0', 'epl-2.0', 'openrail',
 }
 
-
-MODEL_COLUMNS = ['Model ID', 'hf_url', 'task_bucket', 'likes', 'first_commit_date', 'license', 'is_permissive', 'base_models', 'datasets', 'library_versions']
+# added download buckets and upload age cols
+MODEL_COLUMNS = ['Model ID', 'hf_url', 'task_bucket', 'likes', 'first_commit_date', 'license', 'is_permissive', 'base_models', 'datasets', 'library_versions', 'upload_age', 'downloads_bucket']
 
 # Empty cols so we can fill it in
 PASS1_COLUMNS = ['base_model_exists', 'dataset_exists', 'library_version_stale', 'drift(yes/no)', 'checked_by', 'notes']
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
-
 
 def load_commits(data_dir):
     commits = pd.read_csv(os.path.join(data_dir, 'commits', f'{SNAPSHOT}_model_commits_111878.csv'), usecols=['Model ID', 'commit_count', 'commit_index', 'date'])
@@ -71,6 +78,14 @@ def author_type(author):
     return 'unknown'
 
 
+def months_at_snapshot(created_at):
+    created = pd.to_datetime(created_at, utc=True)
+    snapshot = pd.Timestamp(SNAPSHOT, tz='UTC')
+    months = (snapshot.year - created.dt.year) * 12 + (snapshot.month - created.dt.month)
+    # don't count the current month until it has fully elapsed
+    return months - (created.dt.day > snapshot.day).astype(int)
+
+
 def finalize(data_dir):
     models = pd.read_csv(os.path.join(data_dir, 'metadata', f'{SNAPSHOT}_filtered_models_111878.csv'))
     models = models.join(load_commits(data_dir), on='Model ID')
@@ -87,8 +102,10 @@ def finalize(data_dir):
         print(f"{name:>30}: {len(models):,}")
 
     models = models.copy()
+    models['upload_age'] = pd.cut(months_at_snapshot(models['createdAt']), bins=AGE_BINS, labels=AGE_LABELS)
     models['task_bucket'] = models['pipeline_tag'].map(TASK_TO_BUCKET).fillna('Other')
     models['is_permissive'] = models['license'].isin(PERMISSIVE_LICENSES)
+    models['downloads_bucket'] = pd.cut(models['downloads'], bins=DOWNLOAD_BINS, labels=DOWNLOAD_LABELS)
 
     versions = versions[versions['Model ID'].isin(models['Model ID'])]
     summary = (versions.assign(v=versions['package'] + ' ' + versions['version_spec']).groupby('Model ID')['v'].apply(lambda v: '; '.join(dict.fromkeys(v))))
