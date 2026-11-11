@@ -1,7 +1,5 @@
 import os
-import time
 import argparse
-import requests
 import pandas as pd
 
 # Filters the 111,878 models into the final dataset and the Pass 1 sample. 
@@ -38,13 +36,14 @@ PERMISSIVE_LICENSES = {
 }
 
 # added download buckets and upload age cols
-MODEL_COLUMNS = ['Model ID', 'hf_url', 'task_bucket', 'likes', 'first_commit_date', 'license', 'is_permissive', 'base_models', 'datasets', 'library_versions', 'upload_age', 'downloads_bucket']
+MODEL_COLUMNS = ['Model ID', 'hf_url', 'task_bucket', 'author_type', 'likes', 'first_commit_date', 'license', 'is_permissive', 'base_models', 'datasets', 'library_versions', 'upload_age', 'downloads_bucket']
 
 # Empty cols so we can fill it in
-PASS1_COLUMNS = ['base_model_exists', 'dataset_exists', 'library_version_stale', 'drift(yes/no)', 'checked_by', 'notes']
+PASS1_COLUMNS = ['base_model_exists', 'dataset_exists', 'library_version_stale', 'drift', 'checked_by', 'notes']
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
+AUTHOR_TYPES_FILE = os.path.join(OUTPUT_DIR, 'author_types.csv') 
 
 def load_commits(data_dir):
     commits = pd.read_csv(os.path.join(data_dir, 'commits', f'{SNAPSHOT}_model_commits_111878.csv'), usecols=['Model ID', 'commit_count', 'commit_index', 'date'])
@@ -64,18 +63,6 @@ def load_library_versions(data_dir):
     versions = pd.concat([configs, reqs], ignore_index=True)
     versions['version_spec'] = versions['version_spec'].fillna('').str.lstrip('=')
     return versions[['Model ID', 'file', 'package', 'version_spec', 'kind']].drop_duplicates()
-
-
-def author_type(author):
-    for kind, path in [('organization', 'organizations'), ('individual', 'users')]:
-        for attempt in range(10):
-            response = requests.get(f'https://huggingface.co/api/{path}/{author}/overview', timeout=30)
-            if response.status_code != 429:  
-                break
-            time.sleep(30)
-        if response.status_code == 200:
-            return kind
-    return 'unknown'
 
 
 def months_at_snapshot(created_at):
@@ -106,6 +93,12 @@ def finalize(data_dir):
     models['task_bucket'] = models['pipeline_tag'].map(TASK_TO_BUCKET).fillna('Other')
     models['is_permissive'] = models['license'].isin(PERMISSIVE_LICENSES)
     models['downloads_bucket'] = pd.cut(models['downloads'], bins=DOWNLOAD_BINS, labels=DOWNLOAD_LABELS)
+    if os.path.exists(AUTHOR_TYPES_FILE):
+        types = pd.read_csv(AUTHOR_TYPES_FILE, dtype=str, keep_default_na=False).set_index('author')['author_type']
+        models['author_type'] = models['Model ID'].str.split('/').str[0].map(types)
+    else:
+        print(f'No {AUTHOR_TYPES_FILE}: run fetch-author-types.py')
+        models['author_type'] = ''
 
     versions = versions[versions['Model ID'].isin(models['Model ID'])]
     summary = (versions.assign(v=versions['package'] + ' ' + versions['version_spec']).groupby('Model ID')['v'].apply(lambda v: '; '.join(dict.fromkeys(v))))
@@ -118,10 +111,6 @@ def pass1_sample(models):
     # shuffle, then take 1st 50 models of each bucket
     sample = models.sample(frac=1, random_state=SEED).groupby('task_bucket').head(PER_BUCKET)
     sample = sample.sort_values(['task_bucket', 'Model ID'])
-    authors = sample['Model ID'].str.split('/').str[0]
-    print('Looking up author type for', authors.nunique(), 'authors')
-    types = {a: author_type(a) for a in authors.unique()}
-    sample.insert(3, 'author_type', authors.map(types))
     for column in PASS1_COLUMNS:
         sample[column] = ''
     return sample
