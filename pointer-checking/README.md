@@ -1,6 +1,6 @@
 # Base-model and dataset pointer checks
 
-Checks current anonymous Hub API metadata for references declared in model tags.
+Checks current Hub API metadata for references declared in model tags.
 Accepts the filtered metadata JSON or the team's combined dataset ZIP directly.
 Only the metadata member is read from the ZIP. Requirements files, model weights,
 and commit histories are not needed for these checks.
@@ -34,7 +34,7 @@ columns are not read or changed.
 
 ## Outputs
 
-- `manifest.json`: input path, selected model IDs, sampling settings and anonymous access mode.
+- `manifest.json`: input path, selected model IDs, sampling settings, access mode and authenticated account when applicable.
 - `references.json`: extracted references and original tags (offline mode).
 - `checks.jsonl`: flushed progress log, one record per distinct typed dependency lookup.
 - `pointers.csv`: one row per model/dependency, retaining original tags and lookup evidence.
@@ -46,18 +46,23 @@ Shared dependencies are checked once per invocation. `--refresh` rechecks every
 dependency and appends new observations to the journal. Use a new output directory
 for a separate observation date; results otherwise can mix check dates after resume.
 
+On HTTP 429, the checker waits for the Hub's reset time before retrying the
+same reference. If throttling persists, it saves progress and stops. Wait for
+the quota to reset and rerun the same command to resume.
+
 ## Interpretation
 
 | Status/field | Interpretation |
 | --- | --- |
 | `metadata_accessible` | Repository metadata returned successfully; file access and usability were not tested. |
-| `gated` | Metadata reports gating; this does not test whether any user can obtain access. |
+| `gated` | Metadata reports gating; authenticated runs record a separate read-permission check. |
 | `private` | Metadata explicitly reports a private repository. |
 | `access_restricted` | HTTP 401/403; no claim that the dependency was deleted. |
 | `not_found_or_private` | HTTP 404; deletion and hidden/private repositories cannot be distinguished. |
 | `invalid_reference` | Cannot interpret the tag as a Hub repository ID; manual review needed. |
 | `request_error`, `rate_limited`, `server_error`, `unexpected_response` | Inconclusive observation; retry later. |
 | `id_changed` | Response reports a different canonical ID, ignoring case; possible move/rename evidence. |
+| `access_status` | For gated/private references, `accessible` means the account passed the read-permission check. `denied` or an error requires review. |
 
 Legacy one-component dataset IDs are sent unchanged to the dataset endpoint.
 Plain and relation-qualified base-model tags are merged without discarding the
@@ -89,6 +94,51 @@ human coding or establish inter-rater agreement.
 
 API references: [Hub endpoints](https://huggingface.co/docs/hub/api),
 [gated models](https://huggingface.co/docs/hub/models-gated).
+
+## Authenticated full-dataset assessment
+
+The final CSV selects the 10,656 study models from the larger archive. Supply
+`HF_TOKEN` through the environment or use an existing local Hub login. The
+`--authenticated` option validates the token before checking references and checks
+read permissions for known gated/private dependencies.
+
+```bash
+python3 pointer-checking/check_pointers.py \
+  --input /path/to/dependency-drift_dataset_v2_2026-11-03_111878.zip \
+  --sample-csv /path/to/final_models_10656.csv \
+  --output-dir pointer-checking/output/authenticated-study \
+  --authenticated --workers 4 --prefetch-owners
+
+python3 pointer-checking/assess_drift.py \
+  --input /path/to/dependency-drift_dataset_v2_2026-11-03_111878.zip \
+  --model-csv /path/to/final_models_10656.csv \
+  --pointer-dir pointer-checking/output/authenticated-study \
+  --output-dir pointer-checking/output/rq1-study \
+  --expected-models 10656
+```
+
+Use the same commands and directories to resume. Concurrent checks share cached
+references and save completed batches to the journal. Hub authentication can still
+return access errors for resources outside the account's permissions. The
+assessment requires a completed pointer output matching the archive and model IDs.
+
+The assessment saves `library_checks.csv`, `model_labels.csv`, `releases.jsonl`,
+`manifest.json`, and `summary.json`. It reads requirements and config declarations
+separately and retains both when versions differ. `--offline` uses previously
+collected PyPI observations. `--evidence-csv /path/to/reviews.csv` applies reviewed
+dependency findings with source links.
+
+The model output includes existence labels, library staleness, Pass 1 candidate drift,
+confirmed RQ1 drift, per-type drift labels, and notes. Empty labels require review.
+The summary reports confirmed counts, unresolved cases, per-type counts, and
+the resulting fraction bounds across the full model denominator.
+
+See [assessment methods](METHODS.md) for the decision table, review evidence format,
+staleness cutoff, and interpretation of the RQ1 and candidate labels. A major-version
+gap greater than two triggers a stale candidate. Assigning library breaking-change
+drift requires a reviewed source explaining how the change affects the model.
+
+Release metadata is retrieved from the [PyPI JSON API](https://docs.pypi.org/api/json/).
 
 ## Tests
 
