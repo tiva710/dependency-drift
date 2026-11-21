@@ -159,6 +159,22 @@ signals produce candidate Y labels according to the [binary rules](METHODS.md#bi
 This step uses the source observation dates and checks source hashes before reading
 the saved evidence.
 
+To replay the completed exceptional-case reviews, supply the provided resolutions
+file. Resolutions match exact model IDs and version declarations and retain source
+links, reasons, and corrected comparison values.
+
+```bash
+python3 pointer-checking/classify_binary.py \
+  --assessment-dir pointer-checking/output/rq1-2026-11-20 \
+  --resolutions-csv pointer-checking/output/review-sources-2026-11-21/library_review_resolutions.csv \
+  --output-dir pointer-checking/output/reviewed-2026-11-21
+```
+
+Completed HTTP observations and numeric comparisons retain their evidence
+limitations in the status fields and notes. `review_required` indicates an action
+still needed to finish classification. The reviewed report contains no open
+classification actions under the binary screening rules.
+
 ## Tests
 
 The 50-model pilot checked 130 references and cross-checked repository pages

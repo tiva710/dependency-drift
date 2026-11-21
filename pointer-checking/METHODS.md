@@ -7,10 +7,13 @@ These results describe this filtered dataset at the recorded checking dates.
 
 ## Binary screening labels
 
-The fully binary output uses `binary-screening-v1` in `classify_binary.py`. It
+The reviewed binary output uses `binary-screening-v2` in `classify_binary.py`. It
 reuses the saved authenticated observations and PyPI histories. All four requested
 columns contain Y or N. N means no qualifying screening signal under these rules.
-The `review_required (Y/N)` column records evidence limitations.
+The `review_required (Y/N)` column records an outstanding classification or
+evidence-collection action. A terminal authenticated lookup or a completed numeric
+version comparison is a completed finding. Evidence limitations remain in raw
+statuses and notes, including the distinction between failed resolution and deletion.
 
 | Column | Y | N |
 | --- | --- | --- |
@@ -25,18 +28,33 @@ retains existence Y. A denied or unverified read-permission check flags a curren
 access problem. Establishing when access changed requires historical evidence.
 
 For a development, prerelease, local-build, or revision-suffixed pin, compare its
-parseable major version with the latest stable release. Retain a provenance review
-flag when the exact declaration was not verified as published. For a range or
+parseable major version with the latest stable release. Record unverified exact
+build publication separately from the completed numeric comparison. For a range or
 wildcard, compare the newest stable non-yanked release allowed by that expression
 with the latest stable release. An unpinned declaration permits current versions
 and receives stale N because it imposes no old-version restriction.
 
 Unparseable declarations, external URLs, options, missing comparison releases,
-and differing version epochs receive stale N with a review flag. These N labels
-mean the cutoff could not be established. A project absent from PyPI, or a range
-matching no stable non-yanked release there, separately flags a possible
-availability problem. Verify package aliases and alternative indexes during review.
-Fully yanked pins also flag candidates for review.
+and differing version epochs initially receive stale N with a review flag.
+Source-backed resolutions close these cases by exact declaration ID. The completed
+review verifies native OS packages in Ubuntu's catalog, source-installed packages
+in their upstream metadata, model distributions in release assets, included
+requirements in the archive, and Git references against their exact repositories
+or revisions. It also decodes the observed RTF payload and misplaced shell command.
+
+The review corrects config aliases `autoround` to `auto-round` and `nemo` to
+`nemo-toolkit` before comparing releases. Model/project namespace version fields
+are excluded from Python-distribution lookups. Prerelease-only projects are compared
+against their newest non-yanked published prerelease, with that exception recorded.
+Absolute producer-local file references and the documented invalid
+`pkg-resources==0.0.0` freeze entry are recorded as portability/installation findings.
+Fully yanked pins are completed positive findings supported by the saved release data.
+
+The reviewed output retains `review_resolutions.csv` with source URLs and reasons.
+`completed_reviews.csv` records the 4,996 previously flagged models. Unknown or
+unmatched cases still require evidence, so an arbitrary declaration cannot be
+cleared through a blanket default. The current dataset's exceptional declarations
+have 150 source-backed resolutions.
 
 These rules measure current availability and version-distance candidates. Report
 the binary candidate fraction with this operational definition. Historical

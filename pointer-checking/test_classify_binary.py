@@ -1,9 +1,12 @@
+import csv
+from pathlib import Path
+import tempfile
 import unittest
 
 from packaging.version import Version
 
 from assess_drift import library_result
-from classify_binary import classify_library, classify_models, classify_pointers
+from classify_binary import apply_resolutions, classify_library, classify_models, classify_pointers
 
 
 def library(version="1.0", kind="pinned"):
@@ -22,8 +25,8 @@ class BinaryTests(unittest.TestCase):
     def test_development_version_distance_is_classified_and_qualified(self):
         row = classify_library(library("1.2.dev0"), [Version("4.0")])
         self.assertEqual(row["binary_stale"], "Y")
-        self.assertEqual(row["review_required"], "Y")
-        self.assertIn("publication/build provenance needs review", row["classification_reason"])
+        self.assertEqual(row["review_required"], "N")
+        self.assertIn("exact build publication unverified", row["classification_reason"])
         current = classify_library(library("4.0.dev0"), [Version("4.0")])
         self.assertEqual(current["binary_stale"], "N")
 
@@ -49,7 +52,7 @@ class BinaryTests(unittest.TestCase):
         exists, flagged, review, notes = classify_pointers([pointer("not_found_or_private")], "base_model")
         self.assertEqual(exists, "N")
         self.assertTrue(flagged)
-        self.assertTrue(review)
+        self.assertFalse(review)
         exists, flagged, _, _ = classify_pointers([pointer("gated", "denied")], "base_model")
         self.assertEqual(exists, "Y")
         self.assertTrue(flagged)
@@ -74,6 +77,38 @@ class BinaryTests(unittest.TestCase):
         previous = [{"Model ID": "org/model", "drift (Y/N)": "Y"}]
         result = classify_models(previous, [pointer(), {**pointer(), "dependency_type": "dataset"}], [row])[0]
         self.assertEqual(result["drift (Y/N)"], "Y")
+
+
+    def test_gating_without_a_permission_check_requires_completion(self):
+        with self.assertRaisesRegex(ValueError, "read-permission"):
+            classify_pointers([pointer("gated")], "base_model")
+
+    def test_source_review_is_scoped_and_reconciles_comparison_fields(self):
+        row = classify_library(library("nonsense"), [Version("4.0")])
+        row["dependency_id"] = "example nonsense @ config.json #example_version"
+        review = {"model_id": "org/model", "dependency_id": row["dependency_id"],
+                  "binary_stale": "N", "binary_drift": "N", "resolution": "source_version_verified",
+                  "source_url": "https://example.org/releases", "reason": "Reviewed source metadata",
+                  "comparison_version": "1.0", "binary_major_gap": "0"}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)/"resolutions.csv"
+            with path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=list(review))
+                writer.writeheader()
+                writer.writerow(review)
+            apply_resolutions([row], path)
+            self.assertEqual(row["review_required"], "N")
+            self.assertEqual(row["comparison_version"], "1.0")
+            self.assertEqual(row["binary_major_gap"], "0")
+            with self.assertRaisesRegex(ValueError, "Unmatched"):
+                apply_resolutions([], path)
+
+    def test_yanked_status_is_a_completed_positive_finding(self):
+        row = library("1.0")
+        row["release_yanked"] = "True"
+        result = classify_library(row, [Version("4.0")])
+        self.assertEqual(result["binary_drift"], "Y")
+        self.assertEqual(result["review_required"], "N")
 
 
 if __name__ == "__main__":
