@@ -5,6 +5,44 @@ unavailable or renamed dependency, or a library dependency superseded by a
 breaking-change release. Each model contributes at most once to the numerator.
 These results describe this filtered dataset at the recorded checking dates.
 
+## Binary screening labels
+
+The fully binary output uses `binary-screening-v1` in `classify_binary.py`. It
+reuses the saved authenticated observations and PyPI histories. All four requested
+columns contain Y or N. N means no qualifying screening signal under these rules.
+The `review_required (Y/N)` column records evidence limitations.
+
+| Column | Y | N |
+| --- | --- | --- |
+| Base model exists | Every declared base reference returned metadata | A reference failed to resolve, was invalid, or was missing |
+| Dataset exists | Every declared dataset reference returned metadata | A reference failed to resolve, was invalid, or was missing |
+| Library version stale | A comparable declaration is more than two major versions behind | No declaration establishes that distance signal |
+| Drift | A reference fails lookup, is invalid or missing, is renamed, or has denied/unverified gated access; or a library has a stale declaration, fully yanked pin, missing PyPI project, unsatisfied release range, or earlier reviewed positive | No qualifying signal was found |
+
+An existence N records failed resolution in the observation. Deletion, privacy,
+and an originally invalid reference can explain it. Successful gated metadata
+retains existence Y. A denied or unverified read-permission check flags a current
+access problem. Establishing when access changed requires historical evidence.
+
+For a development, prerelease, local-build, or revision-suffixed pin, compare its
+parseable major version with the latest stable release. Retain a provenance review
+flag when the exact declaration was not verified as published. For a range or
+wildcard, compare the newest stable non-yanked release allowed by that expression
+with the latest stable release. An unpinned declaration permits current versions
+and receives stale N because it imposes no old-version restriction.
+
+Unparseable declarations, external URLs, options, missing comparison releases,
+and differing version epochs receive stale N with a review flag. These N labels
+mean the cutoff could not be established. A project absent from PyPI, or a range
+matching no stable non-yanked release there, separately flags a possible
+availability problem. Verify package aliases and alternative indexes during review.
+Fully yanked pins also flag candidates for review.
+
+These rules measure current availability and version-distance candidates. Report
+the binary candidate fraction with this operational definition. Historical
+deletion and applicable breaking changes retain separate evidence requirements
+in the assessment below.
+
 ## Inputs and evidence
 
 Use the final model CSV to select exact IDs from the v2 metadata snapshot. Read

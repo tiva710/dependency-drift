@@ -140,6 +140,25 @@ drift requires a reviewed source explaining how the change affects the model.
 
 Release metadata is retrieved from the [PyPI JSON API](https://docs.pypi.org/api/json/).
 
+## Binary classification
+
+After assessment, classify every model into Y/N values using the saved
+authenticated observations and release histories.
+
+```bash
+python3 pointer-checking/classify_binary.py \
+  --assessment-dir pointer-checking/output/rq1-study \
+  --output-dir pointer-checking/output/binary-study
+```
+
+Outputs include `model_labels.csv`, detailed `library_checks.csv`, and
+`summary.json`. The four requested columns are fully binary. A review flag and
+notes retain evidence limitations. N means no qualifying screening signal.
+Failed lookups, blocked gated access, renames, and library availability or staleness
+signals produce candidate Y labels according to the [binary rules](METHODS.md#binary-screening-labels).
+This step uses the source observation dates and checks source hashes before reading
+the saved evidence.
+
 ## Tests
 
 The 50-model pilot checked 130 references and cross-checked repository pages
