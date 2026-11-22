@@ -4,3 +4,8 @@ mistune
 tqdm
 packaging
 pandas
+openpyxl
+scipy
+statsmodels
+scikit-learn
+matplotlib
