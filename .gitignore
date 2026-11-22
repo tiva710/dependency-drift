@@ -10,3 +10,14 @@ model-filtering/output/
 
 # virtual enviornments
 .venv/
+
+# drift correlation outputs
+drift_correlation/*.csv
+drift_correlation/*.txt
+drift_correlation/cache/
+
+# team dataset zip (download from Discord, too big for git)
+dependency-drift_dataset_v2_*/
+graphs_and_tables/__pycache__/
+Final *
+Project Notes.pdf
