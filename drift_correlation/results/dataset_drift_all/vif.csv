@@ -1,0 +1,21 @@
+column,vif
+age_months,3.4745502940390227
+months_since_last_commit,3.4639557320455023
+downloads_bucket_10-99dl,3.06286445289147
+downloads_bucket_100-999dl,2.929341201787646
+downloads_bucket_1000-9999dl,1.8089446738594746
+log_likes,1.5681467472106938
+downloads_bucket_10k+dl,1.5157435313226695
+log_n_commits,1.2134060562476399
+author_type_organization,1.184998688248175
+author_owns_dependency,1.1446270219863492
+task_bucket_Audio,1.1364339880976004
+log_n_pinned_libs,1.1301801714823636
+task_bucket_Computer Vision,1.1019825875321947
+task_bucket_Multimodal,1.092938771814713
+is_permissive,1.0640306340915755
+base_from_big_org,1.060962431123629
+log_n_datasets,1.0602694688870662
+has_requirements_file,1.0598533032458206
+log_n_base_models,1.022560031199735
+task_bucket_Reinforcement Learning,1.0074495994142927
