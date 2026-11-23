@@ -1,0 +1,9 @@
+model,mean,std,scenario
+logistic_regression,0.7475862889870849,0.0195286512540245,drift_all
+random_forest,0.8540314183999023,0.007820975840483238,drift_all
+logistic_regression,0.7365602361548486,0.024009666871222343,drift_no_common_voice
+random_forest,0.8462778390521137,0.022955555575208647,drift_no_common_voice
+logistic_regression,0.7285329754877999,0.024266935650532808,dataset_drift_all
+random_forest,0.8252350974398942,0.018889239945281792,dataset_drift_all
+logistic_regression,0.7111007997891153,0.01908329254005884,dataset_drift_no_common_voice
+random_forest,0.8083458126789453,0.014286680240341389,dataset_drift_no_common_voice

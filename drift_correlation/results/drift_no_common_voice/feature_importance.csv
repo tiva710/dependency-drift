@@ -1,0 +1,29 @@
+model,feature,mean,std,rank,label
+logistic_regression,n_pinned_libs,0.08483010953317532,0.02074541490175617,1,# pinned libraries
+logistic_regression,n_datasets,0.0639752298468608,0.010722193072324098,2,# datasets
+logistic_regression,task_bucket,0.026196112926093907,0.009270454637884918,3,Task
+logistic_regression,base_from_big_org,0.021477679426862628,0.005687896171994894,4,Base model from big org
+logistic_regression,author_owns_dependency,0.015980812412534698,0.004398154738778411,5,Author owns a dependency
+logistic_regression,n_base_models,0.012814619423713553,0.008838407076621445,6,# base models
+logistic_regression,n_commits,0.005280789652632696,0.001945771916932108,7,# commits
+logistic_regression,author_type,0.0045379431178140936,0.002543199813888729,8,Author type
+logistic_regression,has_requirements_file,0.003203662383152404,0.0010371398219130596,9,Has requirements.txt
+logistic_regression,is_permissive,0.0025367792758586296,0.0023829691203186903,10,Permissive license
+logistic_regression,likes,0.001988259422907026,0.0026320351485673537,11,Likes
+logistic_regression,age_months,0.001631744566949753,0.003108709561400529,12,Age (months)
+logistic_regression,months_since_last_commit,0.0004639489015181031,0.0008385458091443527,13,Months since last commit
+logistic_regression,downloads_bucket,-0.0015765251062178764,0.0016926386573963596,14,Downloads
+random_forest,n_pinned_libs,0.09971119110663043,0.012717433370249116,1,# pinned libraries
+random_forest,n_datasets,0.06934380907285331,0.00850361144510412,2,# datasets
+random_forest,age_months,0.03970239253057616,0.00830252895510998,3,Age (months)
+random_forest,author_owns_dependency,0.03473269824833599,0.004800718582682748,4,Author owns a dependency
+random_forest,n_commits,0.029424654532709017,0.004310115636351354,5,# commits
+random_forest,base_from_big_org,0.02769778531817782,0.003391402684475378,6,Base model from big org
+random_forest,months_since_last_commit,0.024854735454560385,0.0023127903595615918,7,Months since last commit
+random_forest,task_bucket,0.022127969769797924,0.00590820106330512,8,Task
+random_forest,author_type,0.011989975572348502,0.0011762383825648023,9,Author type
+random_forest,is_permissive,0.011639896671959589,0.0020358754069380405,10,Permissive license
+random_forest,downloads_bucket,0.011155518661659185,0.004016605876007028,11,Downloads
+random_forest,n_base_models,0.004307046957424201,0.003182466806531492,12,# base models
+random_forest,likes,0.003943892175045179,0.0014670328360764622,13,Likes
+random_forest,has_requirements_file,0.0014108716196576632,0.0012977869366907287,14,Has requirements.txt

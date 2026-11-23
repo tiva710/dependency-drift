@@ -1,0 +1,21 @@
+label,dataset_drift_all,dataset_drift_no_common_voice,drift_all,drift_no_common_voice
+"# base models (log, per SD)",1.17,1.16,1.25,1.24
+"# commits (log, per SD)",0.94,0.93,0.86,0.84
+"# datasets (log, per SD)",1.65,1.66,1.51,1.51
+"# pinned libraries (log, per SD)",0.99,0.98,2.02,2.07
+Age (months) (per SD),1.05,0.67,1.29,1.0
+Author owns a dependency (yes vs no),1.48,1.78,1.38,1.59
+Author type: organization (vs individual),1.45,1.55,1.27,1.32
+Base model from big org (yes vs no),1.04,0.88,0.67,0.58
+Downloads: 10-99dl (vs 0-9dl),0.88,1.16,0.8,0.92
+Downloads: 100-999dl (vs 0-9dl),0.65,0.96,0.81,1.03
+Downloads: 1000-9999dl (vs 0-9dl),0.49,0.71,0.75,0.97
+Downloads: 10k+dl (vs 0-9dl),0.5,0.7,1.16,1.58
+Has requirements.txt (yes vs no),1.66,1.73,1.81,1.78
+"Likes (log, per SD)",0.92,0.9,0.9,0.89
+Months since last commit (per SD),1.04,1.35,0.91,1.02
+Permissive license (yes vs no),0.95,0.82,0.9,0.81
+Task: Audio (vs NLP),5.53,2.37,5.12,2.22
+Task: Computer Vision (vs NLP),1.0,1.12,1.96,2.18
+Task: Multimodal (vs NLP),1.0,0.9,0.79,0.73
+Task: Reinforcement Learning (vs NLP),0.49,0.45,0.56,0.53
