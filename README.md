@@ -4,7 +4,14 @@ Measures how often Hugging Face model repositories reference a base model,
 dataset, or library version that has since become invalid or stale, and what
 forms that dependency drift takes.
 
-## Initial FIltering (Yinan)
+## Pointer checking
+
+The [pointer checker](pointer-checking/README.md) reads the shared dataset ZIP or
+metadata JSON and checks base-model and dataset references against the Hub API.
+It saves timestamped observations for review, supports reproducible pilot samples,
+and resumes interrupted runs. These checks do not assign final drift labels.
+
+## Initial filtering (Yinan)
 
 Everything below comes from one snapshot of the Hugging Face model list taken on **2026-11-03**.
 

@@ -7,6 +7,7 @@ __pycache__/
 data-collection/**/output/
 data-collection/**/*.jsonl
 model-filtering/output/
+pointer-checking/output/
 
-# virtual enviornments
+# virtual environments
 .venv/
